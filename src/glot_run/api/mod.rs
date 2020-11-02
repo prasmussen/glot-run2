@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod root;
 pub mod not_found;
 

@@ -3,6 +3,7 @@
 export SERVER_LISTEN_ADDR="127.0.0.1"
 export SERVER_LISTEN_PORT="8089"
 export SERVER_WORKER_THREADS="10"
+export SERVER_DATA_ROOT="data"
 
 export API_ACCESS_TOKEN="tamed-busman-want-vendetta"
 

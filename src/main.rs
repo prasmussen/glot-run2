@@ -1,11 +1,20 @@
 mod glot_run;
 
 use std::process;
+use std::fs;
+use std::io;
+use std::fmt;
 use std::time::Duration;
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 use glot_run::config;
 use glot_run::environment;
 use glot_run::api;
+use glot_run::datastore;
+use glot_run::file;
+use glot_run::user;
 
 
 fn main() {
@@ -14,13 +23,8 @@ fn main() {
     match start() {
         Ok(()) => {}
 
-        Err(Error::BuildConfig(err)) => {
-            log::error!("Failed to build config: {}", err);
-            process::exit(1)
-        }
-
-        Err(Error::StartServer(err)) => {
-            log::error!("Failed to start api server: {}", err);
+        Err(err) => {
+            log::error!("{}", err);
             process::exit(1)
         }
     }
@@ -28,13 +32,40 @@ fn main() {
 
 enum Error {
     BuildConfig(environment::Error),
+    PrepareDataDirectory(io::Error),
+    DatastoreInit(file::WriteJsonError),
     StartServer(api::Error),
 }
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Error::BuildConfig(err) => {
+                write!(f, "Failed to build config: {}", err)
+            }
+
+            Error::PrepareDataDirectory(err) => {
+                write!(f, "Failed to prepare data directory: {}", err)
+            }
+
+            Error::DatastoreInit(err) => {
+                write!(f, "Failed to init datastore: {}", err)
+            }
+
+            Error::StartServer(err) => {
+                write!(f, "Failed to start api server: {}", err)
+            }
+        }
+    }
+}
+
 
 fn start() -> Result<(), Error> {
     let env = environment::get_environment();
     let config = build_config(&env)
         .map_err(Error::BuildConfig)?;
+
+    prepare_datastore(&config)?;
 
     log::info!("Listening on {} with {} worker threads", config.server.listen_addr_with_port(), config.server.worker_threads);
 
@@ -45,7 +76,6 @@ fn start() -> Result<(), Error> {
         handler: handle_request,
     }).map_err(Error::StartServer)
 }
-
 
 fn handle_request(config: &config::Config, mut request: tiny_http::Request) {
 
@@ -76,6 +106,10 @@ fn router(request: &tiny_http::Request) -> fn(&config::Config, &mut tiny_http::R
             api::root::handle
         }
 
+        (tiny_http::Method::Post, "/admin/users") => {
+            api::admin::create_user::handle
+        }
+
         _ => {
             api::not_found::handle
         }
@@ -97,11 +131,13 @@ fn build_server_config(env: &environment::Environment) -> Result<config::ServerC
     let listen_addr = environment::lookup(env, "SERVER_LISTEN_ADDR")?;
     let listen_port = environment::lookup(env, "SERVER_LISTEN_PORT")?;
     let worker_threads = environment::lookup(env, "SERVER_WORKER_THREADS")?;
+    let data_root: PathBuf = environment::lookup(env, "SERVER_DATA_ROOT")?;
 
     Ok(config::ServerConfig{
         listen_addr,
         listen_port,
         worker_threads,
+        data_root: Arc::new(Mutex::new(data_root)),
     })
 }
 
@@ -112,3 +148,19 @@ fn build_api_config(env: &environment::Environment) -> Result<api::ApiConfig, en
         access_token,
     })
 }
+
+
+fn prepare_datastore(config: &config::Config) -> Result<(), Error> {
+    let path = config.server.data_root.lock().unwrap();
+
+    fs::create_dir_all(&*path)
+        .map_err(Error::PrepareDataDirectory)?;
+
+    let users_path = config::users_path(&path);
+
+    datastore::init::<user::User>(&users_path)
+        .map_err(Error::DatastoreInit)?;
+
+    Ok(())
+}
+
