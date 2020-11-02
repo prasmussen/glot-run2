@@ -31,10 +31,10 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Resu
         Err(err) => {
             Err(api::ErrorResponse{
                 status_code: 500,
-                body: api::prepare_error_body(api::ErrorBody{
+                body: api::ErrorBody{
                     error: "datastore".to_string(),
                     message: err.to_string(),
-                })
+                }
             })
         }
     }
