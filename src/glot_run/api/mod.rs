@@ -87,6 +87,35 @@ fn check_access_token(config: &ApiConfig, request: &tiny_http::Request) -> Resul
     }
 }
 
+pub fn read_json_body<T: serde::de::DeserializeOwned>(request: &mut tiny_http::Request) -> Result<T, ErrorResponse> {
+    serde_json::from_reader(request.as_reader())
+        .map_err(|err| ErrorResponse{
+            status_code: 400,
+            body: prepare_error_body(ErrorBody{
+                error: "request.parse".to_string(),
+                message: format!("Failed to parse json from request: {}", err),
+            })
+        })
+}
+
+pub fn prepare_json_response<T: serde::Serialize>(body: &T) -> Result<Vec<u8>, ErrorResponse> {
+    serde_json::to_vec_pretty(body)
+        .map_err(|err| {
+            ErrorResponse{
+                status_code: 500,
+                body: prepare_error_body(ErrorBody{
+                    error: "response.serialize".to_string(),
+                    message: format!("Failed to serialize response: {}", err),
+                })
+            }
+        })
+}
+
+pub fn prepare_error_body(error_body: ErrorBody) -> Vec<u8> {
+    serde_json::to_vec(&error_body)
+        .unwrap_or(b"Failed to serialize error body".to_vec())
+}
+
 
 
 pub fn success_response(request: tiny_http::Request, data: &[u8]) -> Result<(), io::Error> {

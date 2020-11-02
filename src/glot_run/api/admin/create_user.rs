@@ -16,15 +16,7 @@ struct CreateUserRequest {
 
 pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Result<Vec<u8>, api::ErrorResponse> {
 
-    let createReq: CreateUserRequest = serde_json::from_reader(request.as_reader())
-        .map_err(|err| api::ErrorResponse{
-            status_code: 400,
-            body: serde_json::to_vec(&api::ErrorBody{
-                error: "request.parse".to_string(),
-                message: format!("Failed to parse json from request: {}", err),
-            }).unwrap_or_else(|_| err.to_string().as_bytes().to_vec())
-        })?;
-
+    let createReq: CreateUserRequest = api::read_json_body(request)?;
     let user = user::new(&createReq.token);
 
     let data_root = config.server.data_root.lock().unwrap();
@@ -33,24 +25,16 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Resu
 
     match res {
         Ok(()) => {
-            serde_json::to_vec_pretty(&user).map_err(|err| {
-                api::ErrorResponse{
-                    status_code: 500,
-                    body: serde_json::to_vec_pretty(&api::ErrorBody{
-                        error: "response.serialize".to_string(),
-                        message: format!("Failed to serialize response: {}", err),
-                    }).unwrap_or_else(|_| err.to_string().as_bytes().to_vec())
-                }
-            })
+            api::prepare_json_response(&user)
         }
 
         Err(err) => {
             Err(api::ErrorResponse{
                 status_code: 500,
-                body: serde_json::to_vec(&api::ErrorBody{
+                body: api::prepare_error_body(api::ErrorBody{
                     error: "datastore".to_string(),
                     message: err.to_string(),
-                }).unwrap_or_else(|_| err.to_string().as_bytes().to_vec())
+                })
             })
         }
     }
