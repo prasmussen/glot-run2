@@ -12,7 +12,7 @@ struct Response {
     description: String,
 }
 
-pub fn handle(_: &config::Config, _: &mut tiny_http::Request) -> Result<Vec<u8>, api::ErrorResponse> {
+pub fn handle(_: &config::Config, _: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
 
     api::prepare_json_response(&Response{
         name: "glot-run".to_string(),

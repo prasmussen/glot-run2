@@ -5,24 +5,16 @@ use crate::glot_run::datastore;
 
 
 
-#[derive(Debug, serde::Deserialize)]
-struct CreateUserRequest {
-    token: String,
-}
 
-
-pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
-
-    let createReq: CreateUserRequest = api::read_json_body(request)?;
-    let user = user::new(&createReq.token);
+pub fn handle(config: &config::Config, _: &mut tiny_http::Request, user_id: &str) -> Result<api::SuccessResponse, api::ErrorResponse> {
 
     let data_root = config.server.data_root.lock().unwrap();
     let users_path = config::users_path(&data_root);
-    let res = datastore::add_entry(&users_path, &user.id.to_string(), &user);
+    let res = datastore::remove_entry::<user::User>(&users_path, user_id);
 
     match res {
         Ok(()) => {
-            api::prepare_json_response(&user)
+            Ok(api::prepare_empty_response())
         }
 
         Err(err) => {

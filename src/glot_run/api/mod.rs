@@ -98,28 +98,51 @@ pub fn read_json_body<T: serde::de::DeserializeOwned>(request: &mut tiny_http::R
         })
 }
 
-pub fn prepare_json_response<T: serde::Serialize>(body: &T) -> Result<Vec<u8>, ErrorResponse> {
-    serde_json::to_vec_pretty(body)
-        .map_err(|err| {
-            ErrorResponse{
+pub struct SuccessResponse {
+    status_code: u16,
+    body: Vec<u8>,
+}
+
+
+pub fn prepare_empty_response() -> SuccessResponse {
+    SuccessResponse{
+        status_code: 204,
+        body: vec![],
+    }
+}
+
+pub fn prepare_json_response<T: serde::Serialize>(body: &T) -> Result<SuccessResponse, ErrorResponse> {
+    match serde_json::to_vec_pretty(body) {
+        Ok(data) => {
+            Ok(SuccessResponse{
+                status_code: 200,
+                body: data,
+            })
+        }
+
+        Err(err) => {
+            Err(ErrorResponse{
                 status_code: 500,
                 body: ErrorBody{
                     error: "response.serialize".to_string(),
                     message: format!("Failed to serialize response: {}", err),
                 }
-            }
-        })
+            })
+        }
+    }
 }
 
 
-pub fn success_response(request: tiny_http::Request, data: &[u8]) -> Result<(), io::Error> {
+pub fn success_response(request: tiny_http::Request, data: &SuccessResponse) -> Result<(), io::Error> {
+    let body = data.body.as_slice();
+
     let response = tiny_http::Response::new(
-        tiny_http::StatusCode(200),
+        tiny_http::StatusCode(data.status_code),
         vec![
             tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap()
         ],
-        data,
-        Some(data.len()),
+        body,
+        Some(body.len()),
         None,
     );
 

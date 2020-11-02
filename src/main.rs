@@ -79,9 +79,7 @@ fn start() -> Result<(), Error> {
 
 fn handle_request(config: &config::Config, mut request: tiny_http::Request) {
 
-    let handler = router(&request);
-
-    let result = match handler(&config, &mut request) {
+    let result = match router(&config, &mut request) {
         Ok(data) => {
             api::success_response(request, &data)
         }
@@ -100,18 +98,30 @@ fn handle_request(config: &config::Config, mut request: tiny_http::Request) {
     }
 }
 
-fn router(request: &tiny_http::Request) -> fn(&config::Config, &mut tiny_http::Request) -> Result<Vec<u8>, api::ErrorResponse> {
-    match (request.method(), request.url()) {
-        (tiny_http::Method::Get, "/") => {
-            api::root::handle
+fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
+    let path = request
+        .url()
+        .trim_start_matches('/')
+        .trim_end_matches('/')
+        .split('/')
+        .filter(|str| !str.is_empty())
+        .collect::<Vec<&str>>();
+
+    match (path.as_slice(), request.method()) {
+        ([] , tiny_http::Method::Get) => {
+            api::root::handle(config, request)
         }
 
-        (tiny_http::Method::Post, "/admin/users") => {
-            api::admin::create_user::handle
+        (["admin", "users"], tiny_http::Method::Post) => {
+            api::admin::create_user::handle(config, request)
+        }
+
+        (["admin", "users", user_id], tiny_http::Method::Delete) => {
+            api::admin::delete_user::handle(config, request, &user_id.to_string())
         }
 
         _ => {
-            api::not_found::handle
+            api::not_found::handle(config, request)
         }
     }
 }

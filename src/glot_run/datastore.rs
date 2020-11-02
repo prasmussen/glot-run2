@@ -133,16 +133,16 @@ pub fn update_entry<F, E>(path: &Path, key: &str, update_fn: F) -> Result<(), Up
         .map_err(UpdateError::Write)
 }
 
-pub fn remove_entry<F, E>(path: &Path, key: &str) -> Result<(), UpdateError>
+pub fn remove_entry<E>(path: &Path, key: &str) -> Result<(), AddError>
     where
         E: serde::Serialize,
         E: serde::de::DeserializeOwned {
 
     let mut entries: DataStore<E> = file::read_json(path)
-        .map_err(UpdateError::Read)?;
+        .map_err(AddError::Read)?;
 
     entries.remove(key);
 
     file::write_json(path, &entries)
-        .map_err(UpdateError::Write)
+        .map_err(AddError::Write)
 }
