@@ -112,6 +112,10 @@ fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<a
             api::root::handle(config, request)
         }
 
+        (["admin", "users"], tiny_http::Method::Get) => {
+            api::admin::list_users::handle(config, request)
+        }
+
         (["admin", "users"], tiny_http::Method::Post) => {
             api::admin::create_user::handle(config, request)
         }
