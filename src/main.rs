@@ -113,23 +113,23 @@ fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<a
         }
 
         (["admin", "users"], tiny_http::Method::Get) => {
-            api::admin::list_users::handle(config, request)
+            api::admin::users::list::handle(config, request)
         }
 
         (["admin", "users"], tiny_http::Method::Post) => {
-            api::admin::create_user::handle(config, request)
+            api::admin::users::create::handle(config, request)
         }
 
         (["admin", "users", user_id], tiny_http::Method::Get) => {
-            api::admin::get_user::handle(config, request, &user_id.to_string())
+            api::admin::users::get::handle(config, request, &user_id.to_string())
         }
 
         (["admin", "users", user_id], tiny_http::Method::Put) => {
-            api::admin::update_user::handle(config, request, &user_id.to_string())
+            api::admin::users::update::handle(config, request, &user_id.to_string())
         }
 
         (["admin", "users", user_id], tiny_http::Method::Delete) => {
-            api::admin::delete_user::handle(config, request, &user_id.to_string())
+            api::admin::users::delete::handle(config, request, &user_id.to_string())
         }
 
         _ => {
