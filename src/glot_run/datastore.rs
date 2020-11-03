@@ -23,6 +23,20 @@ pub enum GetError {
     NotFound(),
 }
 
+impl fmt::Display for GetError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            GetError::Read(err) => {
+                write!(f, "Failed to read from datastore: {}", err)
+            }
+
+            GetError::NotFound() => {
+                write!(f, "Entry not found in datastore")
+            }
+        }
+    }
+}
+
 pub fn get_entry<E>(path: &Path, key: &str) -> Result<E, GetError>
     where
         E: Clone,
