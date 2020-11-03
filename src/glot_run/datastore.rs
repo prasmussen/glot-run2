@@ -128,9 +128,28 @@ pub enum UpdateError {
     Write(file::WriteJsonError),
 }
 
+impl fmt::Display for UpdateError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            UpdateError::Read(err) => {
+                write!(f, "Failed to read from datastore: {}", err)
+            }
 
-pub fn update_entry<F, E>(path: &Path, key: &str, update_fn: F) -> Result<(), UpdateError>
+            UpdateError::NotFound() => {
+                write!(f, "Entry not found in datastore")
+            }
+
+            UpdateError::Write(err) => {
+                write!(f, "Failed to write to datastore: {}", err)
+            }
+        }
+    }
+}
+
+
+pub fn update_entry<F, E>(path: &Path, key: &str, update_fn: F) -> Result<E, UpdateError>
     where
+        E: Clone,
         E: serde::Serialize,
         E: serde::de::DeserializeOwned,
         F: FnOnce(&E) -> E {
@@ -141,10 +160,12 @@ pub fn update_entry<F, E>(path: &Path, key: &str, update_fn: F) -> Result<(), Up
     let old_entry = entries.get(key).ok_or(UpdateError::NotFound())?;
     let new_entry = update_fn(&old_entry);
 
-    entries.insert(key.to_string(), new_entry);
+    entries.insert(key.to_string(), new_entry.clone());
 
     file::write_json(path, &entries)
-        .map_err(UpdateError::Write)
+        .map_err(UpdateError::Write)?;
+
+    Ok(new_entry)
 }
 
 pub fn remove_entry<E>(path: &Path, key: &str) -> Result<(), AddError>

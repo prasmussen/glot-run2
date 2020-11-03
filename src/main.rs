@@ -124,6 +124,10 @@ fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<a
             api::admin::get_user::handle(config, request, &user_id.to_string())
         }
 
+        (["admin", "users", user_id], tiny_http::Method::Put) => {
+            api::admin::update_user::handle(config, request, &user_id.to_string())
+        }
+
         (["admin", "users", user_id], tiny_http::Method::Delete) => {
             api::admin::delete_user::handle(config, request, &user_id.to_string())
         }

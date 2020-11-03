@@ -25,3 +25,13 @@ pub fn new(token: &str) -> User {
         modified: util::rfc3339(now),
     }
 }
+
+pub fn update_token(user: &User, token: &str) -> User {
+    let now = time::SystemTime::now();
+
+    User{
+        token: token.to_string(),
+        modified: util::rfc3339(now),
+        ..user.clone()
+    }
+}
