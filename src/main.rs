@@ -117,6 +117,10 @@ fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<a
             api::languages::list::handle(config, request)
         }
 
+        (["languages", language], tiny_http::Method::Get) => {
+            api::languages::list_versions::handle(config, request, &language.to_string())
+        }
+
         (["admin", "users"], tiny_http::Method::Get) => {
             api::admin::users::list::handle(config, request)
         }
