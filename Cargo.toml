@@ -17,3 +17,4 @@ ascii = "1.0.0"
 tempfile = "3.1.0"
 uuid = { version = "0.8", features = ["serde", "v4"] }
 chrono = "0.4.19"
+sha1 = { version = "0.6.0", features = ["std"] }

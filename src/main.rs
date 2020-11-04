@@ -15,6 +15,7 @@ use glot_run::api;
 use glot_run::datastore;
 use glot_run::file;
 use glot_run::user;
+use glot_run::language;
 
 
 fn main() {
@@ -132,6 +133,22 @@ fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<a
             api::admin::users::delete::handle(config, request, &user_id.to_string())
         }
 
+        (["admin", "languages"], tiny_http::Method::Get) => {
+            api::admin::languages::list::handle(config, request)
+        }
+
+        (["admin", "languages"], tiny_http::Method::Put) => {
+            api::admin::languages::create::handle(config, request)
+        }
+
+        (["admin", "languages", language_id], tiny_http::Method::Get) => {
+            api::admin::languages::get::handle(config, request, &language_id.to_string())
+        }
+
+        (["admin", "languages", language_id], tiny_http::Method::Delete) => {
+            api::admin::languages::delete::handle(config, request, &language_id.to_string())
+        }
+
         _ => {
             api::not_found::handle(config, request)
         }
@@ -173,14 +190,18 @@ fn build_api_config(env: &environment::Environment) -> Result<api::ApiConfig, en
 
 
 fn prepare_datastore(config: &config::Config) -> Result<(), Error> {
-    let path = config.server.data_root.lock().unwrap();
+    let data_root = config.server.data_root.lock().unwrap();
 
-    fs::create_dir_all(&*path)
+    fs::create_dir_all(&*data_root)
         .map_err(Error::PrepareDataDirectory)?;
 
-    let users_path = config::users_path(&path);
+    let users_path = config::users_path(&data_root);
+    let languages_path = config::languages_path(&data_root);
 
     datastore::init::<user::User>(&users_path)
+        .map_err(Error::DatastoreInit)?;
+
+    datastore::init::<language::Language>(&languages_path)
         .map_err(Error::DatastoreInit)?;
 
     Ok(())
