@@ -4,7 +4,7 @@ use crate::glot_run::language;
 use crate::glot_run::datastore;
 
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, serde::Serialize)]
 pub struct Language {
     name: String,
 }
@@ -14,11 +14,19 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Resu
 
     let data_root = config.server.data_root.lock().unwrap();
     let languages_path = config::languages_path(&data_root);
-    let res = datastore::list_values::<language::Language>(&languages_path);
+    let res = datastore::list_values::<language::Language>(&languages_path).map(|languages| {
+        languages
+            .iter()
+            .map(to_language)
+            .collect::<Vec<Language>>()
+    });
 
     match res {
-        Ok(languages) => {
-            api::prepare_json_response(&response_body(languages))
+        Ok(mut languages) => {
+            languages.sort();
+            languages.dedup();
+
+            api::prepare_json_response(&languages)
         }
 
         Err(err) => {
@@ -34,11 +42,8 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Resu
 }
 
 
-fn response_body(languages: Vec<language::Language>) -> Vec<Language> {
-    languages.iter().map(|language| {
-        Language{
-            name: language.name.clone(),
-        }
-    })
-    .collect()
+fn to_language(language: &language::Language) -> Language {
+    Language{
+        name: language.name.clone(),
+    }
 }
