@@ -1,4 +1,5 @@
 pub mod admin;
+pub mod languages;
 pub mod root;
 pub mod not_found;
 
