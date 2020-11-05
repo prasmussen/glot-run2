@@ -65,7 +65,7 @@ pub fn list_values<E>(path: &Path) -> Result<Vec<E>, file::ReadJsonError>
     Ok(values)
 }
 
-pub fn find_value<E, F>(path: &Path, f: F) -> Result<E, GetError>
+pub fn find_value<F, E>(path: &Path, f: F) -> Result<E, GetError>
     where
         E: Clone,
         E: serde::de::DeserializeOwned,
