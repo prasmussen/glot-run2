@@ -41,7 +41,7 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request, options
 }
 
 
-fn handle_datastore_error(err: datastore::GetError) -> api::ErrorResponse{
+fn handle_datastore_error(err: datastore::GetError) -> api::ErrorResponse {
     match err {
         datastore::GetError::NotFound() => {
             api::ErrorResponse{

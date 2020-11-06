@@ -13,34 +13,34 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request, user_id
 
     let reqBody: RequestBody = api::read_json_body(request)?;
     let data_root = config.server.data_root.lock().unwrap();
-    let res = datastore::update_entry::<_, user::User>(&data_root.users_path(), user_id, |user| {
+    let user = datastore::update_entry::<_, user::User>(&data_root.users_path(), user_id, |user| {
         user::update_token(user, &reqBody.token)
-    });
+    }).map_err(handle_datastore_error)?;
 
-    match res {
-        Ok(user) => {
-            api::prepare_json_response(&user)
+    api::prepare_json_response(&user)
+}
+
+
+fn handle_datastore_error(err: datastore::UpdateError) -> api::ErrorResponse {
+    match err {
+        datastore::UpdateError::NotFound() => {
+            api::ErrorResponse{
+                status_code: 404,
+                body: api::ErrorBody{
+                    error: "not_found".to_string(),
+                    message: err.to_string(),
+                }
+            }
         }
 
-        Err(err) => {
-            Err(api::ErrorResponse{
-                status_code: status_code(&err),
+        _ => {
+            api::ErrorResponse{
+                status_code: 500,
                 body: api::ErrorBody{
                     error: "datastore".to_string(),
                     message: err.to_string(),
                 }
-            })
+            }
         }
-    }
-}
-
-
-fn status_code(err: &datastore::UpdateError) -> u16 {
-    match err {
-        datastore::UpdateError::NotFound() =>
-            404,
-
-        _ =>
-            500,
     }
 }

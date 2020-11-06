@@ -9,21 +9,19 @@ use crate::glot_run::datastore;
 pub fn handle(config: &config::Config, _: &mut tiny_http::Request, language_id: &str) -> Result<api::SuccessResponse, api::ErrorResponse> {
 
     let data_root = config.server.data_root.lock().unwrap();
-    let res = datastore::remove_entry::<language::Language>(&data_root.languages_path(), language_id);
+    let res = datastore::remove_entry::<language::Language>(&data_root.languages_path(), language_id)
+        .map_err(handle_datastore_error)?;
 
-    match res {
-        Ok(()) => {
-            Ok(api::prepare_empty_response())
-        }
+    Ok(api::prepare_empty_response())
+}
 
-        Err(err) => {
-            Err(api::ErrorResponse{
-                status_code: 500,
-                body: api::ErrorBody{
-                    error: "datastore".to_string(),
-                    message: err.to_string(),
-                }
-            })
+
+fn handle_datastore_error(err: datastore::AddError) -> api::ErrorResponse {
+    api::ErrorResponse{
+        status_code: 500,
+        body: api::ErrorBody{
+            error: "datastore".to_string(),
+            message: err.to_string(),
         }
     }
 }

@@ -8,32 +8,33 @@ use crate::glot_run::datastore;
 pub fn handle(config: &config::Config, _: &mut tiny_http::Request, user_id: &str) -> Result<api::SuccessResponse, api::ErrorResponse> {
 
     let data_root = config.server.data_root.lock().unwrap();
-    let res = datastore::get_entry::<user::User>(&data_root.users_path(), user_id);
+    let user = datastore::get_entry::<user::User>(&data_root.users_path(), user_id).
+        map_err(handle_datastore_error)?;
 
-    match res {
-        Ok(user) => {
-            api::prepare_json_response(&user)
-        }
+    api::prepare_json_response(&user)
+}
 
-        Err(err) => {
-            Err(api::ErrorResponse{
-                status_code: status_code(&err),
+
+fn handle_datastore_error(err: datastore::GetError) -> api::ErrorResponse {
+    match err {
+        datastore::GetError::Read(_) => {
+            api::ErrorResponse{
+                status_code: 500,
                 body: api::ErrorBody{
                     error: "datastore".to_string(),
                     message: err.to_string(),
                 }
-            })
+            }
         }
-    }
-}
 
-
-fn status_code(err: &datastore::GetError) -> u16 {
-    match err {
-        datastore::GetError::Read(_) =>
-            500,
-
-        datastore::GetError::NotFound() =>
-            404,
+        datastore::GetError::NotFound() => {
+            api::ErrorResponse{
+                status_code: 404,
+                body: api::ErrorBody{
+                    error: "not_found".to_string(),
+                    message: err.to_string(),
+                }
+            }
+        }
     }
 }

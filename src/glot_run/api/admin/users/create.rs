@@ -17,21 +17,19 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Resu
     let user = user::new(&createReq.token);
 
     let data_root = config.server.data_root.lock().unwrap();
-    let res = datastore::add_entry(&data_root.users_path(), &user.id.to_string(), &user);
+    datastore::add_entry(&data_root.users_path(), &user.id.to_string(), &user)
+        .map_err(handle_datastore_error)?;
 
-    match res {
-        Ok(()) => {
-            api::prepare_json_response(&user)
-        }
+    api::prepare_json_response(&user)
+}
 
-        Err(err) => {
-            Err(api::ErrorResponse{
-                status_code: 500,
-                body: api::ErrorBody{
-                    error: "datastore".to_string(),
-                    message: err.to_string(),
-                }
-            })
+fn handle_datastore_error(err: datastore::AddError) -> api::ErrorResponse {
+
+    api::ErrorResponse{
+        status_code: 500,
+        body: api::ErrorBody{
+            error: "datastore".to_string(),
+            message: err.to_string(),
         }
     }
 }
