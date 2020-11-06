@@ -6,7 +6,7 @@ use crate::glot_run::datastore;
 
 #[derive(Debug, serde::Deserialize)]
 struct RequestBody {
-    token: String,
+    token: ascii::AsciiString,
 }
 
 pub fn handle(config: &config::Config, request: &mut tiny_http::Request, user_id: &str) -> Result<api::SuccessResponse, api::ErrorResponse> {

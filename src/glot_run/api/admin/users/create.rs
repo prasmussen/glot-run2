@@ -7,7 +7,7 @@ use crate::glot_run::datastore;
 
 #[derive(Debug, serde::Deserialize)]
 struct RequestBody {
-    token: String,
+    token: ascii::AsciiString,
 }
 
 

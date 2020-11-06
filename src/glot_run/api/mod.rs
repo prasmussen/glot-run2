@@ -69,7 +69,17 @@ pub struct ApiConfig {
     pub access_token: ascii::AsciiString,
 }
 
-fn check_access_token(access_token: &ascii::AsciiString, request: &tiny_http::Request) -> Result<(), ErrorResponse> {
+pub fn get_auth_token(request: &tiny_http::Request) -> Option<String> {
+    request.headers().iter().find_map(|header| {
+        if header.field.equiv("Authorization") {
+            Some(header.value.to_string().trim_start_matches("Token ").to_string())
+        } else {
+            None
+        }
+    })
+}
+
+pub fn check_access_token(access_token: &ascii::AsciiString, request: &tiny_http::Request) -> Result<(), ErrorResponse> {
     let is_allowed = request.headers().iter()
         .filter(|header| header.field.equiv("Authorization"))
         .map(|header| header.value.clone())
@@ -78,13 +88,17 @@ fn check_access_token(access_token: &ascii::AsciiString, request: &tiny_http::Re
     if is_allowed {
         Ok(())
     } else {
-        Err(ErrorResponse{
-            status_code: 401,
-            body: ErrorBody{
-                error: "access_token".to_string(),
-                message: "Missing or wrong access token".to_string(),
-            }
-        })
+        Err(authorization_error())
+    }
+}
+
+pub fn authorization_error() -> ErrorResponse {
+    ErrorResponse{
+        status_code: 401,
+        body: ErrorBody{
+            error: "access_token".to_string(),
+            message: "Missing or wrong access token".to_string(),
+        }
     }
 }
 
