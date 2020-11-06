@@ -28,7 +28,7 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request, options
         language.name == options.language && language.version == options.version
     }).map_err(handle_datastore_error)?;
 
-    let run_result = run::run(run::RunRequest{
+    let run_result = run::run(&config.run, run::RunRequest{
         image: language.image.clone(),
         payload: run::RunRequestPayload{
             language: language.name.clone(),

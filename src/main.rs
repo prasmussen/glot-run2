@@ -16,6 +16,7 @@ use glot_run::datastore;
 use glot_run::file;
 use glot_run::user;
 use glot_run::language;
+use glot_run::run;
 
 
 fn main() {
@@ -174,10 +175,12 @@ fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<a
 fn build_config(env: &environment::Environment) -> Result<config::Config, environment::Error> {
     let server = build_server_config(env)?;
     let api = build_api_config(env)?;
+    let run = build_run_config(env)?;
 
     Ok(config::Config{
         server,
         api,
+        run,
     })
 }
 
@@ -199,6 +202,16 @@ fn build_api_config(env: &environment::Environment) -> Result<api::ApiConfig, en
     let access_token = environment::lookup(env, "API_ACCESS_TOKEN")?;
 
     Ok(api::ApiConfig{
+        access_token,
+    })
+}
+
+fn build_run_config(env: &environment::Environment) -> Result<run::Config, environment::Error> {
+    let base_url = environment::lookup(env, "DOCKER_RUN_BASE_URL")?;
+    let access_token = environment::lookup(env, "DOCKER_RUN_ACCESS_TOKEN")?;
+
+    Ok(run::Config{
+        base_url,
         access_token,
     })
 }

@@ -4,11 +4,13 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use crate::glot_run::api;
+use crate::glot_run::run;
 
 #[derive(Clone, Debug)]
 pub struct Config {
     pub server: ServerConfig,
     pub api: api::ApiConfig,
+    pub run: run::Config,
 }
 
 
