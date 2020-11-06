@@ -11,8 +11,7 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Resu
     let language = language::new(&language_data);
 
     let data_root = config.server.data_root.lock().unwrap();
-    let languages_path = config::languages_path(&data_root);
-    let res = datastore::add_entry(&languages_path, &language.id.to_string(), &language);
+    let res = datastore::add_entry(&data_root.languages_path(), &language.id.to_string(), &language);
 
     match res {
         Ok(()) => {

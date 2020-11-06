@@ -13,8 +13,7 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request, user_id
 
     let reqBody: RequestBody = api::read_json_body(request)?;
     let data_root = config.server.data_root.lock().unwrap();
-    let users_path = config::users_path(&data_root);
-    let res = datastore::update_entry::<_, user::User>(&users_path, user_id, |user| {
+    let res = datastore::update_entry::<_, user::User>(&data_root.users_path(), user_id, |user| {
         user::update_token(user, &reqBody.token)
     });
 

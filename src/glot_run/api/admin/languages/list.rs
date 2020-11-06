@@ -8,8 +8,7 @@ use crate::glot_run::datastore;
 pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
 
     let data_root = config.server.data_root.lock().unwrap();
-    let languages_path = config::languages_path(&data_root);
-    let res = datastore::list_values::<language::Language>(&languages_path);
+    let res = datastore::list_values::<language::Language>(&data_root.languages_path());
 
     match res {
         Ok(languages) => {

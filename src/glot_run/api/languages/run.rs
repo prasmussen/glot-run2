@@ -23,8 +23,7 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request, options
 
     let req_body: RequestBody = api::read_json_body(request)?;
     let data_root = config.server.data_root.lock().unwrap();
-    let languages_path = config::languages_path(&data_root);
-    let language = datastore::find_value::<_, language::Language>(&languages_path, |language| {
+    let language = datastore::find_value::<_, language::Language>(&data_root.languages_path(), |language| {
         language.name == options.language && language.version == options.version
     }).map_err(handle_datastore_error)?;
 

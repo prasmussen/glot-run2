@@ -8,8 +8,7 @@ use crate::glot_run::datastore;
 pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
 
     let data_root = config.server.data_root.lock().unwrap();
-    let users_path = config::users_path(&data_root);
-    let res = datastore::list_values::<user::User>(&users_path);
+    let res = datastore::list_values::<user::User>(&data_root.users_path());
 
     match res {
         Ok(users) => {

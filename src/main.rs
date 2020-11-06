@@ -194,7 +194,7 @@ fn build_server_config(env: &environment::Environment) -> Result<config::ServerC
         listen_addr,
         listen_port,
         worker_threads,
-        data_root: Arc::new(Mutex::new(data_root)),
+        data_root: Arc::new(Mutex::new(config::DataRoot::new(data_root))),
     })
 }
 
@@ -220,16 +220,13 @@ fn build_run_config(env: &environment::Environment) -> Result<run::Config, envir
 fn prepare_datastore(config: &config::Config) -> Result<(), Error> {
     let data_root = config.server.data_root.lock().unwrap();
 
-    fs::create_dir_all(&*data_root)
+    fs::create_dir_all(&*data_root.root_path())
         .map_err(Error::PrepareDataDirectory)?;
 
-    let users_path = config::users_path(&data_root);
-    let languages_path = config::languages_path(&data_root);
-
-    datastore::init::<user::User>(&users_path)
+    datastore::init::<user::User>(&data_root.users_path())
         .map_err(Error::DatastoreInit)?;
 
-    datastore::init::<language::Language>(&languages_path)
+    datastore::init::<language::Language>(&data_root.languages_path())
         .map_err(Error::DatastoreInit)?;
 
     Ok(())

@@ -19,7 +19,7 @@ pub struct ServerConfig {
     pub listen_addr: String,
     pub listen_port: u16,
     pub worker_threads: u16,
-    pub data_root: Arc<Mutex<PathBuf>>,
+    pub data_root: Arc<Mutex<DataRoot>>,
 }
 
 impl ServerConfig {
@@ -29,10 +29,25 @@ impl ServerConfig {
 }
 
 
-pub fn users_path(path: &Path) -> PathBuf {
-    path.join("users.json")
-}
 
-pub fn languages_path(path: &Path) -> PathBuf {
-    path.join("languages.json")
+#[derive(Clone, Debug)]
+pub struct DataRoot(PathBuf);
+
+
+impl DataRoot {
+    pub fn new(path: PathBuf) -> DataRoot {
+        DataRoot(path)
+    }
+
+    pub fn root_path(&self) -> PathBuf {
+        self.0.clone()
+    }
+
+    pub fn users_path(&self) -> PathBuf {
+        self.0.join("users.json")
+    }
+
+    pub fn languages_path(&self) -> PathBuf {
+        self.0.join("languages.json")
+    }
 }

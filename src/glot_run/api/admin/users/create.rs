@@ -17,8 +17,7 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Resu
     let user = user::new(&createReq.token);
 
     let data_root = config.server.data_root.lock().unwrap();
-    let users_path = config::users_path(&data_root);
-    let res = datastore::add_entry(&users_path, &user.id.to_string(), &user);
+    let res = datastore::add_entry(&data_root.users_path(), &user.id.to_string(), &user);
 
     match res {
         Ok(()) => {
