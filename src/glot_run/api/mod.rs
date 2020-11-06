@@ -193,7 +193,7 @@ pub struct ErrorResponse {
     pub body: ErrorBody,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorBody {
     pub error: String,

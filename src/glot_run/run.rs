@@ -1,6 +1,7 @@
 use std::io;
 use std::fmt;
 use crate::glot_run::util;
+use crate::glot_run::api;
 
 
 #[derive(Debug, serde::Serialize)]
@@ -53,18 +54,28 @@ pub fn run(config: &Config, run_request: RunRequest) -> Result<RunResult, Error>
         .set("Content-Type", "application/json")
         .send_bytes(&body);
 
-    // TODO: add more details to error
-    util::err_if_false(response.ok(), Error::ResponseNotOk());
 
-    response.into_json_deserialize()
-        .map_err(Error::DeserializeResponse)
+    if !response.ok() {
+        let status_code = response.status();
+        let error_body: api::ErrorBody = response.into_json_deserialize()
+            .map_err(Error::DeserializeResponse)?;
+
+        Err(Error::ResponseNotOk(api::ErrorResponse{
+            status_code: status_code,
+            body: error_body,
+        }))
+    } else {
+        response.into_json_deserialize()
+            .map_err(Error::DeserializeResponse)
+
+    }
 }
 
 
 pub enum Error {
     SerializeRequest(serde_json::Error),
     DeserializeResponse(io::Error),
-    ResponseNotOk(),
+    ResponseNotOk(api::ErrorResponse),
 }
 
 
@@ -79,9 +90,8 @@ impl fmt::Display for Error {
                 write!(f, "Failed to deserialize response body: {}", err)
             }
 
-            // TODO: improve
-            Error::ResponseNotOk() => {
-                write!(f, "Response not ok")
+            Error::ResponseNotOk(err) => {
+                write!(f, "Response not ok: {}", err.body.message)
             }
         }
     }

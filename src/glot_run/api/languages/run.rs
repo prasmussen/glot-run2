@@ -66,6 +66,8 @@ fn handle_datastore_error(err: datastore::GetError) -> api::ErrorResponse {
 }
 
 
+// TODO: Send proper status codes
+// 400 is returned in all cases temporarily until we can improve error handling in glot-www
 fn handle_run_error(err: run::Error) -> api::ErrorResponse{
     match err {
         run::Error::SerializeRequest(serde_err) => {
@@ -78,14 +80,20 @@ fn handle_run_error(err: run::Error) -> api::ErrorResponse{
             }
         }
 
-        // TODO: improve
-        _ => {
+        run::Error::DeserializeResponse(io_err) => {
             api::ErrorResponse{
-                status_code: 500,
+                status_code: 400,
                 body: api::ErrorBody{
-                    error: "run".to_string(),
-                    message: err.to_string(),
+                    error: "run.response.body".to_string(),
+                    message: format!("Failed to serialize run request: {}", io_err)
                 }
+            }
+        }
+
+        run::Error::ResponseNotOk(error_response) => {
+            api::ErrorResponse{
+                status_code: 400,
+                body: error_response.body,
             }
         }
     }
