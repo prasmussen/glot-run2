@@ -1,5 +1,6 @@
 use std::io;
 use std::fmt;
+use std::time;
 use crate::glot_run::util;
 use crate::glot_run::api;
 
@@ -52,6 +53,7 @@ pub fn run(config: &Config, run_request: RunRequest) -> Result<RunResult, Error>
     let response = ureq::post(&config.run_url())
         .set("X-Access-Token", &config.access_token)
         .set("Content-Type", "application/json")
+        .timeout(time::Duration::from_secs(300))
         .send_bytes(&body);
 
 
