@@ -166,7 +166,7 @@ pub fn success_response(request: tiny_http::Request, data: &SuccessResponse) -> 
 
 pub fn error_response(request: tiny_http::Request, error: ErrorResponse) -> Result<(), io::Error> {
     let error_body = serde_json::to_vec_pretty(&error.body)
-        .unwrap_or(b"Failed to serialize error body".to_vec());
+        .unwrap_or_else(|_| b"Failed to serialize error body".to_vec());
 
     let response = tiny_http::Response::new(
         tiny_http::StatusCode(error.status_code),

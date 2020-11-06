@@ -62,7 +62,7 @@ pub fn run(config: &Config, run_request: RunRequest) -> Result<RunResult, Error>
             .map_err(Error::DeserializeResponse)?;
 
         Err(Error::ResponseNotOk(api::ErrorResponse{
-            status_code: status_code,
+            status_code,
             body: error_body,
         }))
     } else {

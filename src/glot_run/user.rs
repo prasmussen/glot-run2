@@ -1,5 +1,4 @@
 use std::time;
-use uuid;
 
 use crate::glot_run::util;
 
@@ -19,7 +18,7 @@ pub fn new(token: &ascii::AsciiString) -> User {
     let now = time::SystemTime::now();
 
     User{
-        id: id,
+        id,
         token: token.clone(),
         created: util::rfc3339(now),
         modified: util::rfc3339(now),

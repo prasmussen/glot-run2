@@ -31,12 +31,12 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request, options
     let req_body: RequestBody = api::read_json_body(request)?;
 
     let run_result = run::run(&config.run, run::RunRequest{
-        image: language.image.clone(),
+        image: language.image,
         payload: run::RunRequestPayload{
-            language: language.name.clone(),
-            files: req_body.files.clone(),
-            stdin: req_body.stdin.clone(),
-            command: req_body.command.clone(),
+            language: language.name,
+            files: req_body.files,
+            stdin: req_body.stdin,
+            command: req_body.command,
         }
     }).map_err(handle_run_error)?;
 
@@ -103,7 +103,7 @@ fn handle_run_error(err: run::Error) -> api::ErrorResponse{
 
 
 fn check_user(request: &tiny_http::Request, data_root: &config::DataRoot) -> Result<(), api::ErrorResponse> {
-    let auth_token = api::get_auth_token(request).ok_or(api::authorization_error())?;
+    let auth_token = api::get_auth_token(request).ok_or_else(api::authorization_error)?;
 
     let _ = datastore::find_value::<_, user::User>(&data_root.users_path(), |user| {
         user.token == auth_token

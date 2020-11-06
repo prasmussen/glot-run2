@@ -1,14 +1,11 @@
-use serde::{Serialize};
-use serde::de::DeserializeOwned;
-use serde_json;
 use std::io;
-use std::path::{Path};
-use std::fs::File;
 use std::fmt;
+use std::path;
+use std::fs::File;
 use tempfile::NamedTempFile;
 
 
-pub fn write_json<T: Serialize>(path: &Path, value: &T) -> Result<(), WriteJsonError> {
+pub fn write_json<T: serde::Serialize>(path: &path::Path, value: &T) -> Result<(), WriteJsonError> {
     let dir = path.parent()
         .ok_or(WriteJsonError::DetermineDir())?;
 
@@ -24,7 +21,7 @@ pub fn write_json<T: Serialize>(path: &Path, value: &T) -> Result<(), WriteJsonE
     Ok(())
 }
 
-pub fn read_json<T: DeserializeOwned>(path: &Path) -> Result<T, ReadJsonError> {
+pub fn read_json<T: serde::de::DeserializeOwned>(path: &path::Path) -> Result<T, ReadJsonError> {
     let file = File::open(path)
         .map_err(ReadJsonError::Open)?;
 

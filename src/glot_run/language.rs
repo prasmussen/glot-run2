@@ -1,4 +1,3 @@
-use sha1;
 
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -21,7 +20,7 @@ pub fn new(data: &LanguageData) -> Language {
     let id = sha1_hash(&format!("{}{}", data.name, data.version));
 
     Language{
-        id: id,
+        id,
         name: data.name.clone(),
         version: data.version.clone(),
         image: data.image.clone(),
