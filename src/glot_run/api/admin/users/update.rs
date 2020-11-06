@@ -11,10 +11,10 @@ struct RequestBody {
 
 pub fn handle(config: &config::Config, request: &mut tiny_http::Request, user_id: &str) -> Result<api::SuccessResponse, api::ErrorResponse> {
 
-    let reqBody: RequestBody = api::read_json_body(request)?;
+    let req_body: RequestBody = api::read_json_body(request)?;
     let data_root = config.server.data_root.lock().unwrap();
     let user = datastore::update_entry::<_, user::User>(&data_root.users_path(), user_id, |user| {
-        user::update_token(user, &reqBody.token)
+        user::update_token(user, &req_body.token)
     }).map_err(handle_datastore_error)?;
 
     api::prepare_json_response(&user)

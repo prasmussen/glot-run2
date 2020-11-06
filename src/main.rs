@@ -4,7 +4,6 @@ use std::process;
 use std::fs;
 use std::io;
 use std::fmt;
-use std::time::Duration;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -101,8 +100,8 @@ fn handle_request(config: &config::Config, mut request: tiny_http::Request) {
 }
 
 fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
-    let path = request
-        .url()
+    let url = request.url().to_string();
+    let path = url
         .trim_start_matches('/')
         .trim_end_matches('/')
         .split('/')

@@ -11,7 +11,7 @@ pub struct Language {
 }
 
 
-pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
+pub fn handle(config: &config::Config, _: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
 
     let data_root = config.server.data_root.lock().unwrap();
     let mut languages = datastore::list_values::<language::Language>(&data_root.languages_path()).map(|languages| {

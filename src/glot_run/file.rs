@@ -4,7 +4,6 @@ use serde_json;
 use std::io;
 use std::path::{Path};
 use std::fs::File;
-use std::io::{BufReader, Write};
 use std::fmt;
 use tempfile::NamedTempFile;
 
@@ -29,7 +28,7 @@ pub fn read_json<T: DeserializeOwned>(path: &Path) -> Result<T, ReadJsonError> {
     let file = File::open(path)
         .map_err(ReadJsonError::Open)?;
 
-    let reader = BufReader::new(file);
+    let reader = io::BufReader::new(file);
 
     serde_json::from_reader(reader)
         .map_err(ReadJsonError::Deserialize)

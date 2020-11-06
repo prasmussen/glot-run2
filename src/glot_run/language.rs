@@ -1,4 +1,3 @@
-use std::time;
 use sha1;
 
 
