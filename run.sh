@@ -12,5 +12,5 @@ export DOCKER_RUN_ACCESS_TOKEN="magmatic-handyman-confirm-cauldron"
 
 export RUST_LOG=debug
 
-export RUSTFLAGS=-Awarnings
+#export RUSTFLAGS=-Awarnings
 cargo run

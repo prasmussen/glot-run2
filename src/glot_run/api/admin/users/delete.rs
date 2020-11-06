@@ -5,7 +5,8 @@ use crate::glot_run::datastore;
 
 
 
-pub fn handle(config: &config::Config, _: &mut tiny_http::Request, user_id: &str) -> Result<api::SuccessResponse, api::ErrorResponse> {
+pub fn handle(config: &config::Config, request: &mut tiny_http::Request, user_id: &str) -> Result<api::SuccessResponse, api::ErrorResponse> {
+    api::check_access_token(&config.api.access_token, request)?;
 
     let data_root = config.server.data_root.lock().unwrap();
     datastore::remove_entry::<user::User>(&data_root.users_path(), user_id)

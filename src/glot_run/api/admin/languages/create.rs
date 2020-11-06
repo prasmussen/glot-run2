@@ -6,6 +6,7 @@ use crate::glot_run::datastore;
 
 
 pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
+    api::check_access_token(&config.api.access_token, request)?;
 
     let language_data: language::LanguageData = api::read_json_body(request)?;
     let language = language::new(&language_data);

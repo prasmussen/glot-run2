@@ -69,11 +69,11 @@ pub struct ApiConfig {
     pub access_token: ascii::AsciiString,
 }
 
-fn check_access_token(config: &ApiConfig, request: &tiny_http::Request) -> Result<(), ErrorResponse> {
+fn check_access_token(access_token: &ascii::AsciiString, request: &tiny_http::Request) -> Result<(), ErrorResponse> {
     let is_allowed = request.headers().iter()
-        .filter(|header| header.field.equiv("X-Access-Token"))
+        .filter(|header| header.field.equiv("Authorization"))
         .map(|header| header.value.clone())
-        .any(|value| value == config.access_token);
+        .any(|value| value == format!("Token {}", access_token));
 
     if is_allowed {
         Ok(())

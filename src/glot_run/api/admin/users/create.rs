@@ -12,6 +12,7 @@ struct RequestBody {
 
 
 pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
+    api::check_access_token(&config.api.access_token, request)?;
 
     let req_body: RequestBody = api::read_json_body(request)?;
     let user = user::new(&req_body.token);
