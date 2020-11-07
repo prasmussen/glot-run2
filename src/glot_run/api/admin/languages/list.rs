@@ -7,7 +7,7 @@ use crate::glot_run::file;
 
 
 pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
-    api::check_access_token(&config.api.access_token, request)?;
+    api::check_access_token(&config.api.admin_access_token, request)?;
 
     let data_root = config.server.data_root.lock().unwrap();
     let mut languages = datastore::list_values::<language::Language>(&data_root.languages_path())

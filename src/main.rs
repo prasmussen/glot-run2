@@ -204,10 +204,10 @@ fn build_server_config(env: &environment::Environment) -> Result<config::ServerC
 }
 
 fn build_api_config(env: &environment::Environment) -> Result<api::ApiConfig, environment::Error> {
-    let access_token = environment::lookup(env, "API_ACCESS_TOKEN")?;
+    let admin_access_token = environment::lookup(env, "API_ADMIN_ACCESS_TOKEN")?;
 
     Ok(api::ApiConfig{
-        access_token,
+        admin_access_token,
     })
 }
 

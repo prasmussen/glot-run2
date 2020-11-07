@@ -67,7 +67,7 @@ pub fn start<C, H>(config: Config<C, H>) -> Result<(), Error>
 
 #[derive(Debug, Clone)]
 pub struct ApiConfig {
-    pub access_token: ascii::AsciiString,
+    pub admin_access_token: ascii::AsciiString,
 }
 
 pub fn get_auth_token(request: &tiny_http::Request) -> Option<String> {

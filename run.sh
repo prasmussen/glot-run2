@@ -6,7 +6,7 @@ export SERVER_WORKER_THREADS="10"
 export SERVER_BASE_URL="http://localhost:8089"
 export SERVER_DATA_ROOT="data"
 
-export API_ACCESS_TOKEN="tamed-busman-want-vendetta"
+export API_ADMIN_ACCESS_TOKEN="tamed-busman-want-vendetta"
 
 export DOCKER_RUN_BASE_URL="http://localhost:8088"
 export DOCKER_RUN_ACCESS_TOKEN="magmatic-handyman-confirm-cauldron"
