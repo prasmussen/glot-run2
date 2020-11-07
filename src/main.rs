@@ -128,6 +128,10 @@ fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<a
             })
         }
 
+        (["images"], tiny_http::Method::Get) => {
+            api::images::list::handle(config, request)
+        }
+
         (["admin", "users"], tiny_http::Method::Get) => {
             api::admin::users::list::handle(config, request)
         }
