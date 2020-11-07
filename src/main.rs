@@ -187,12 +187,14 @@ fn build_server_config(env: &environment::Environment) -> Result<config::ServerC
     let listen_addr = environment::lookup(env, "SERVER_LISTEN_ADDR")?;
     let listen_port = environment::lookup(env, "SERVER_LISTEN_PORT")?;
     let worker_threads = environment::lookup(env, "SERVER_WORKER_THREADS")?;
+    let base_url: String = environment::lookup(env, "SERVER_BASE_URL")?;
     let data_root: PathBuf = environment::lookup(env, "SERVER_DATA_ROOT")?;
 
     Ok(config::ServerConfig{
         listen_addr,
         listen_port,
         worker_threads,
+        base_url: base_url.trim_end_matches('/').to_string(),
         data_root: Arc::new(Mutex::new(config::DataRoot::new(data_root))),
     })
 }

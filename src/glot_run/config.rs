@@ -18,6 +18,7 @@ pub struct ServerConfig {
     pub listen_addr: String,
     pub listen_port: u16,
     pub worker_threads: u16,
+    pub base_url: String,
     pub data_root: Arc<Mutex<DataRoot>>,
 }
 

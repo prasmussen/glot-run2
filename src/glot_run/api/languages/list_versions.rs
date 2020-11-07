@@ -6,9 +6,10 @@ use crate::glot_run::file;
 use crate::glot_run::util;
 
 
-#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, serde::Serialize)]
+#[derive(Debug, Eq, PartialEq, serde::Serialize)]
 pub struct Language {
     version: String,
+    url: String,
 }
 
 
@@ -19,11 +20,11 @@ pub fn handle(config: &config::Config, _: &mut tiny_http::Request, language_name
         languages
             .iter()
             .filter(|language| language.name == language_name)
-            .map(to_language)
+            .map(|language| to_language(config, language))
             .collect::<Vec<Language>>()
     }).map_err(handle_datastore_error)?;
 
-    languages.sort();
+    languages.sort_by_key(|language| language.version.clone());
 
     util::err_if_false(!languages.is_empty(), api::ErrorResponse{
         status_code: 404,
@@ -38,9 +39,10 @@ pub fn handle(config: &config::Config, _: &mut tiny_http::Request, language_name
 
 
 
-fn to_language(language: &language::Language) -> Language {
+fn to_language(config: &config::Config, language: &language::Language) -> Language {
     Language{
         version: language.version.clone(),
+        url: format!("{}/languages/{}/{}", config.server.base_url, language.name, language.version),
     }
 }
 
