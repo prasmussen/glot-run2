@@ -12,7 +12,7 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request) -> Resu
     let language = language::new(&language_data);
 
     let data_root = config.server.data_root.lock().unwrap();
-    let language = datastore::add_entry(&data_root.languages_path(), &language.id, &language)
+    datastore::add_entry(&data_root.languages_path(), &language.id, &language)
         .map_err(handle_datastore_error)?;
 
     api::prepare_json_response(&language)
