@@ -28,6 +28,9 @@ pub fn handle(config: &config::Config, request: &mut tiny_http::Request, options
         language.name == options.language && language.version == options.version
     }).map_err(handle_datastore_error)?;
 
+    // Unlock mutex
+    drop(data_root);
+
     let req_body: RequestBody = api::read_json_body(request)?;
 
     let run_result = run::run(&config.run, run::RunRequest{
