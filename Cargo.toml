@@ -19,3 +19,4 @@ uuid = { version = "0.8", features = ["serde", "v4"] }
 chrono = "0.4.19"
 sha1 = { version = "0.6.0", features = ["std"] }
 ureq = { version = "1.5.1", features = ["json"] }
+signal-hook = "0.1.16"

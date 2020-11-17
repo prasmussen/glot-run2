@@ -1,12 +1,15 @@
 mod glot_run;
 
 use std::process;
+use std::thread;
 use std::fs;
 use std::io;
 use std::fmt;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use signal_hook::iterator::Signals;
 
 use glot_run::config;
 use glot_run::environment;
@@ -33,9 +36,11 @@ fn main() {
 
 enum Error {
     BuildConfig(environment::Error),
+    CreateServer(io::Error),
     PrepareDataDirectory(io::Error),
     DatastoreInit(file::WriteJsonError),
     StartServer(api::Error),
+    Signal(io::Error),
 }
 
 impl fmt::Display for Error {
@@ -43,6 +48,10 @@ impl fmt::Display for Error {
         match self {
             Error::BuildConfig(err) => {
                 write!(f, "Failed to build config: {}", err)
+            }
+
+            Error::CreateServer(err) => {
+                write!(f, "Failed to create api server: {}", err)
             }
 
             Error::PrepareDataDirectory(err) => {
@@ -56,10 +65,13 @@ impl fmt::Display for Error {
             Error::StartServer(err) => {
                 write!(f, "Failed to start api server: {}", err)
             }
+
+            Error::Signal(err) => {
+                write!(f, "Failed to register signal handler: {}", err)
+            }
         }
     }
 }
-
 
 fn start() -> Result<(), Error> {
     let env = environment::get_environment();
@@ -70,36 +82,28 @@ fn start() -> Result<(), Error> {
 
     log::info!("Listening on {} with {} worker threads", config.server.listen_addr_with_port(), config.server.worker_threads);
 
-    api::start(api::Config{
+    let server = api::Server::new(config.server.listen_addr_with_port())
+        .map_err(Error::CreateServer)?;
+
+    let workers = server.start(api::ServerConfig{
         listen_addr: config.server.listen_addr_with_port(),
         worker_threads: config.server.worker_threads,
         handler_config: config,
         handler: handle_request,
-    }).map_err(Error::StartServer)
+    }).map_err(Error::StartServer)?;
+
+    // Handle OS signals
+    handle_signals(server)
+        .map_err(Error::Signal)?;
+
+    // Wait for workers
+    workers.wait();
+
+    Ok(())
 }
 
-fn handle_request(config: &config::Config, mut request: tiny_http::Request) {
 
-    let result = match router(&config, &mut request) {
-        Ok(data) => {
-            api::success_response(request, &data)
-        }
-
-        Err(err) => {
-            api::error_response(request, err)
-        }
-    };
-
-    match result {
-        Ok(()) => {},
-
-        Err(err) => {
-            log::error!("Failure while sending response: {}", err)
-        }
-    }
-}
-
-fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
+fn handle_request(config: &config::Config, request: &mut tiny_http::Request) -> Result<api::SuccessResponse, api::ErrorResponse> {
     let url = request.url().to_string();
     let path = url
         .trim_start_matches('/')
@@ -174,6 +178,38 @@ fn router(config: &config::Config, request: &mut tiny_http::Request) -> Result<a
     }
 }
 
+
+fn handle_signals(server: api::Server) -> Result<(), io::Error> {
+    let signals = Signals::new(&[
+        signal_hook::SIGTERM,
+        signal_hook::SIGINT,
+    ])?;
+
+    thread::spawn(move || {
+        for signal in signals.forever() {
+            match signal {
+                signal_hook::SIGTERM => {
+                    log::info!("Caught SIGTERM signal");
+                    break
+                }
+
+                signal_hook::SIGINT => {
+                    log::info!("Caught SIGINT signal");
+                    break
+                }
+
+                _ => {
+                    log::info!("Ignoring signal {}", signal);
+                }
+            }
+        }
+
+        log::info!("Shutting down server...");
+        drop(server)
+    });
+
+    Ok(())
+}
 
 fn build_config(env: &environment::Environment) -> Result<config::Config, environment::Error> {
     let server = build_server_config(env)?;
