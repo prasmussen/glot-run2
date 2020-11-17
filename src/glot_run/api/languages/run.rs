@@ -80,7 +80,7 @@ fn handle_run_error(err: run::Error) -> api::ErrorResponse{
                 status_code: 400,
                 body: api::ErrorBody{
                     error: "run.request.body".to_string(),
-                    message: format!("Failed to serialize run request: {}", serde_err)
+                    message: format!("Failed to serialize request to docker-run: {}", serde_err)
                 }
             }
         }
@@ -90,7 +90,7 @@ fn handle_run_error(err: run::Error) -> api::ErrorResponse{
                 status_code: 400,
                 body: api::ErrorBody{
                     error: "run.request.error".to_string(),
-                    message: format!("Problem with run request: {}", req_error)
+                    message: format!("Problem with request to docker-run: {}", req_error)
                 }
             }
         }
@@ -100,7 +100,7 @@ fn handle_run_error(err: run::Error) -> api::ErrorResponse{
                 status_code: 400,
                 body: api::ErrorBody{
                     error: "run.response.body".to_string(),
-                    message: format!("Failed to deserialize run response: {}", io_err)
+                    message: format!("Failed to deserialize response from docker-run: {}", io_err)
                 }
             }
         }
@@ -110,7 +110,7 @@ fn handle_run_error(err: run::Error) -> api::ErrorResponse{
                 status_code: 400,
                 body: api::ErrorBody{
                     error: "run.response.error.body".to_string(),
-                    message: format!("Failed to deserialize error body from run response: {}", io_err)
+                    message: format!("Failed to deserialize error response from docker-run: {}", io_err)
                 }
             }
         }
@@ -120,7 +120,7 @@ fn handle_run_error(err: run::Error) -> api::ErrorResponse{
                 status_code: 500,
                 body: api::ErrorBody{
                     error: "run.response.error.synthetic".to_string(),
-                    message: "Request failed".to_string(),
+                    message: "Request to docker-run failed".to_string(),
                 }
             }
         }
