@@ -55,27 +55,40 @@ pub fn run(config: &Config, run_request: RunRequest) -> Result<RunResult, Error>
         .timeout(time::Duration::from_secs(300))
         .send_bytes(&body);
 
+    let response = check_response(response)?;
 
+    response.into_json_deserialize()
+        .map_err(Error::DeserializeResponse)
+}
+
+fn check_response(response: ureq::Response) -> Result<ureq::Response, Error> {
     if !response.ok() {
-        let status_code = response.status();
-        let error_body: api::ErrorBody = response.into_json_deserialize()
-            .map_err(Error::DeserializeResponse)?;
+        if response.synthetic() {
+            let err = response.into_synthetic_error()
+                .ok_or(Error::EmptySynthetic())?;
 
-        Err(Error::ResponseNotOk(api::ErrorResponse{
-            status_code,
-            body: error_body,
-        }))
+            Err(Error::Request(err))
+        } else {
+            let status_code = response.status();
+            let error_body: api::ErrorBody = response.into_json_deserialize()
+                .map_err(Error::DeserializeErrorResponse)?;
+
+            Err(Error::ResponseNotOk(api::ErrorResponse{
+                status_code,
+                body: error_body,
+            }))
+        }
     } else {
-        response.into_json_deserialize()
-            .map_err(Error::DeserializeResponse)
-
+        Ok(response)
     }
 }
 
-
 pub enum Error {
     SerializeRequest(serde_json::Error),
+    Request(ureq::Error),
     DeserializeResponse(io::Error),
+    DeserializeErrorResponse(io::Error),
+    EmptySynthetic(),
     ResponseNotOk(api::ErrorResponse),
 }
 
@@ -87,8 +100,20 @@ impl fmt::Display for Error {
                 write!(f, "Failed to serialize request body: {}", err)
             }
 
+            Error::Request(err) => {
+                write!(f, "Request error: {}", err)
+            }
+
             Error::DeserializeResponse(err) => {
                 write!(f, "Failed to deserialize response body: {}", err)
+            }
+
+            Error::DeserializeErrorResponse(err) => {
+                write!(f, "Failed to deserialize error response body: {}", err)
+            }
+
+            Error::EmptySynthetic() => {
+                write!(f, "Expected synthetic error, but there was none (programming error)")
             }
 
             Error::ResponseNotOk(err) => {

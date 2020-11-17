@@ -85,12 +85,42 @@ fn handle_run_error(err: run::Error) -> api::ErrorResponse{
             }
         }
 
+        run::Error::Request(req_error) => {
+            api::ErrorResponse{
+                status_code: 400,
+                body: api::ErrorBody{
+                    error: "run.request.error".to_string(),
+                    message: format!("Problem with run request: {}", req_error)
+                }
+            }
+        }
+
         run::Error::DeserializeResponse(io_err) => {
             api::ErrorResponse{
                 status_code: 400,
                 body: api::ErrorBody{
                     error: "run.response.body".to_string(),
-                    message: format!("Failed to serialize run request: {}", io_err)
+                    message: format!("Failed to deserialize run response: {}", io_err)
+                }
+            }
+        }
+
+        run::Error::DeserializeErrorResponse(io_err) => {
+            api::ErrorResponse{
+                status_code: 400,
+                body: api::ErrorBody{
+                    error: "run.response.error.body".to_string(),
+                    message: format!("Failed to deserialize error body from run response: {}", io_err)
+                }
+            }
+        }
+
+        run::Error::EmptySynthetic() => {
+            api::ErrorResponse{
+                status_code: 500,
+                body: api::ErrorBody{
+                    error: "run.response.error.synthetic".to_string(),
+                    message: "Request failed".to_string(),
                 }
             }
         }
