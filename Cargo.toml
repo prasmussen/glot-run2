@@ -1,6 +1,6 @@
 [package]
 name = "glot-run"
-version = "2.0.0"
+version = "2.0.1"
 authors = ["Petter Rasmussen <petter@hask.no>"]
 edition = "2018"
 
